@@ -11,83 +11,80 @@ interface Props {
 	reposLoading: boolean
 }
 
-export const CompanyCard: React.FC<Props> = ({ company, companyInfoLoading, reposLoading }) => {
-	console.log('company:', company)
-	return (
-		<Card
-			full='horizontal'
-			padding='large'
-			marginBetween='medium'
-		>
-			<LoadingBoundary loading={companyInfoLoading} >
-				<Row
-					justify='between'
+export const CompanyCard: React.FC<Props> = ({ company, companyInfoLoading, reposLoading }) => (
+	<Card
+		full='horizontal'
+		padding='large'
+		marginBetween='medium'
+	>
+		<LoadingBoundary loading={companyInfoLoading} >
+			<Row
+				justify='between'
+			>
+				<Flexbox
+					direction='row'
+					align='center'
+					marginBetween='medium'
 				>
-					<Flexbox
-						direction='row'
-						align='center'
-						marginBetween='medium'
-					>
-						<Image src={company?.imageUrl} />
-						<Flexbox>
-							<Flexbox
-								direction='row'
-								align='center'
-								marginBetween='small'
-							>
-								<h1>
-									{company?.name}
-								</h1>
-								{company?.stockSymbol && (
-									<Chip>
-										{company?.stockSymbol}
-									</Chip>
-								)}
-							</Flexbox>
-							<Flexbox
-								direction='row'
-								align='center'
-								marginBetween={6}
-							>
-								<label>{`${company?.city},`}</label>
-								<label>{company?.country}</label>
-							</Flexbox>
+					<Image src={company?.imageUrl} />
+					<Flexbox>
+						<Flexbox
+							direction='row'
+							align='center'
+							marginBetween='small'
+						>
+							<h1>
+								{company?.name}
+							</h1>
+							{company?.stockSymbol && (
+								<Chip>
+									{company?.stockSymbol}
+								</Chip>
+							)}
+						</Flexbox>
+						<Flexbox
+							direction='row'
+							align='center'
+							marginBetween={6}
+						>
+							<label>{`${company?.city}${company?.country && ','}`}</label>
+							<label>{company?.country}</label>
 						</Flexbox>
 					</Flexbox>
-					<LoadingBoundary
-						loading={reposLoading}
-						fallBack={(
-							<Flexbox>
-								<Loader size={30} />
-							</Flexbox>
-						)}
-					>
-						<StarCounter stars={company?.totalStars} />
-					</LoadingBoundary>
-				</Row>
-				<Flexbox>
-					<p>{company?.description}</p>
 				</Flexbox>
-			</LoadingBoundary>
-			<Flexbox
-				marginBetween='medium'
-				full='horizontal'
-			>
-				<LoadingBoundary loading={reposLoading} >
-					{company?.repos?.length === 0 && (
-						<FadedLabel>This company has no GitHub repositories associated with it.</FadedLabel>
+				<LoadingBoundary
+					loading={reposLoading}
+					fallBack={(
+						<Flexbox>
+							<Loader size={30} />
+						</Flexbox>
 					)}
-					{company?.repos && company?.repos.map(repo => (
-						<RepoCard
-							key={repo.name}
-							repo={repo}
-						/>
-					))}
+				>
+					<StarCounter stars={company?.totalStars} />
 				</LoadingBoundary>
+			</Row>
+			<Flexbox>
+				<p>{company?.description}</p>
 			</Flexbox>
-		</Card>
-	)
-}
+		</LoadingBoundary>
+		<Flexbox
+			marginBetween='medium'
+			full='horizontal'
+		>
+			<LoadingBoundary loading={reposLoading} >
+				{company?.repos?.length === 0 && (
+					<FadedLabel>This company has no GitHub repositories associated with it.</FadedLabel>
+				)}
+				{company?.repos && company?.repos.map(repo => (
+					<RepoCard
+						key={repo.name}
+						repo={repo}
+					/>
+				))}
+			</LoadingBoundary>
+		</Flexbox>
+	</Card>
+)
 
 const Image = styled.img`
 	object-fit: cover;

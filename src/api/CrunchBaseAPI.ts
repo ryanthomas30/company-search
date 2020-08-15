@@ -1,13 +1,22 @@
 import axios, { AxiosInstance } from 'axios'
 
+export interface CrunchBaseCompany {
+	name: string
+	city_name?: string
+	country_code?: string
+	stock_symbol?: string
+	short_description: string
+	profile_image_url: string
+}
+
 export class CrunchBaseAPI {
 
-	private readonly BASE_URL: string
+	private readonly BASE_URL?: string
 	private readonly API_KEY?: string
 	private readonly axios: AxiosInstance
 
 	constructor() {
-		this.BASE_URL = 'https://crunchbase-crunchbase-v1.p.rapidapi.com'
+		this.BASE_URL = process.env.REACT_APP_CRUNCHBASE_BASE_URL
 		this.API_KEY = process.env.REACT_APP_RAPID_API_KEY
 
 		this.axios = axios.create({
@@ -18,17 +27,25 @@ export class CrunchBaseAPI {
 		})
 	}
 
-	async getCompany(query: string) {
+	async getCompany(query: string): Promise<CrunchBaseCompany[]> {
 		const endpoint = '/odm-organizations'
 		const response = await this.axios.get(endpoint, {
 			params: {
 				name: query,
 			},
 		})
-		const firstResult = response?.data?.data?.items[0]
-		if (firstResult) {
-			return firstResult.properties
-		}
-		throw Error(`No companies matching the query: \"${query}\".`)
+		return response?.data?.data?.items?.map(({ properties }: { properties: CrunchBaseCompany }) => properties)
+	}
+
+	async getFullCompany(query: string): Promise<CrunchBaseCompany> {
+		const companies = await this.getCompany(query)
+		const [firstResult] = companies
+		if (firstResult) return firstResult
+		throw Error(`No companies matching the query: "${query}".`)
+	}
+
+	async getPartialCompany(query: string): Promise<Pick<CrunchBaseCompany, 'name' | 'profile_image_url'>[]> {
+		const companies = await this.getCompany(query)
+		return companies.slice(0, 5)
 	}
 }

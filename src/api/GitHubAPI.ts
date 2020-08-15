@@ -1,7 +1,7 @@
 import GitHub from 'github-api'
 
 export class GitHubAPI {
-	private readonly GitHub: any
+	private readonly GitHub: GitHub
 	constructor() {
 		this.GitHub = new GitHub()
 	}

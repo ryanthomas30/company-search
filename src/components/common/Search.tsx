@@ -1,29 +1,78 @@
-import React, { FC } from 'react'
+import React, { FC, useState } from 'react'
 
 import styled from 'styled-components'
 
-import { Flexbox } from './Flexbox'
-import { Icon } from './Icon'
+import { Flexbox, Row, Icon, Card } from './'
 
-type Props = React.DetailedHTMLProps<
+interface Props extends React.DetailedHTMLProps<
 React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement
->
+> {
+	searchResults?: SearchResult[]
+	onResultSelect?: (value: string) => void
+}
 
-const BaseSearch: FC<Props> = ({ placeholder = 'Search', ...rest }) => (
-	<Flexbox
-		full='horizontal'
-		style={{ position: 'relative' }}
-	>
-		<input
-			placeholder={placeholder}
-			{...rest}
-		/>
-		<SearchIcon
-			icon='search'
-			color='#555'
-		/>
-	</Flexbox>
-)
+export interface SearchResult {
+	image: string
+	title: string
+	value: string
+}
+
+const wait = (time: number): Promise<void> => new Promise(resolve => setTimeout(resolve, time))
+
+const BaseSearch: FC<Props> = ({ placeholder = 'Search', searchResults, onResultSelect, onFocus, onBlur, ...rest }) => {
+	const [isFocused, setIsFocused] = useState<boolean>(false)
+
+	const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+		setIsFocused(true)
+		if (onFocus) onFocus(event)
+	}
+
+	const handleBlur = async (event: React.FocusEvent<HTMLInputElement>) => {
+		if (onBlur) onBlur(event)
+		await wait(100)
+		setIsFocused(false)
+	}
+
+	return (
+		<Flexbox
+			full='horizontal'
+			style={{ position: 'relative' }}
+		>
+			<input
+				placeholder={placeholder}
+				onFocus={handleFocus}
+				onBlur={handleBlur}
+				{...rest}
+			/>
+			<SearchIcon
+				icon='search'
+				color='#555'
+			/>
+			{isFocused && searchResults && searchResults.length !== 0 && (
+				<SearchResults
+					full='horizontal'
+					color='#333'
+					overflow='hidden'
+				>
+					{searchResults.map(result => (
+						<SearchResult
+							key={result.title}
+							marginBetween='small'
+							padding='small'
+							onClick={() => {
+								if (onResultSelect) onResultSelect(result.value)
+								setIsFocused(false)
+							}}
+						>
+							<Image src={result.image} />
+							<h3>{result.title}</h3>
+						</SearchResult>
+					))}
+				</SearchResults>
+			)}
+		</Flexbox>
+	)
+}
 
 export const Search = styled(BaseSearch)`
 	width: -webkit-fill-available;
@@ -46,4 +95,25 @@ const SearchIcon = styled(Icon)`
 	top: 13px;
 	right: 14px;
 	cursor: unset;
+`
+
+const SearchResults = styled(Card)`
+	position: absolute;
+	top: 45px;
+	z-index: 500;
+	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+`
+
+const SearchResult = styled(Row)`
+	transition: all 80ms ease-in-out;
+	&:hover {
+		background-color: #444;
+	}
+`
+
+const Image = styled.img`
+	object-fit: cover;
+	height: 30px;
+	width: 30px;
+	border-radius: 50%;
 `

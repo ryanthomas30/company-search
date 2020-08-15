@@ -1,16 +1,38 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+
+import { useDebouncedCallback } from 'use-debounce'
 
 import { CrunchBaseAPI, GitHubAPI } from './api'
-import { Flexbox, Card, CompanyCard, Page, Search, Chip } from './components'
-import { Company } from './model'
+import { Flexbox, Card, CompanyCard, Page, Search, SearchResult, Chip, Icon } from './components'
+import { Company, Repo } from './model'
 
 const App = () => {
 	const [searchValue, setSearchValue] = useState<string>('')
+	const [searchResults, setSearchResults] = useState<SearchResult[]>([])
 	const [currentQuery, setCurrentQuery] = useState<string>('')
 	const [error, setError] = useState<string>('')
 	const [crunchBaseLoading, setCrunchBaseLoading] = useState<boolean>(false)
 	const [gitHubLoading, setGitHubLoading] = useState<boolean>(false)
 	const [company, setCompany] = useState<Partial<Company> | null>(null)
+
+	const [debouncedGetSearchResults] = useDebouncedCallback(async (searchValue: string) => {
+		if (searchValue === '') {
+			setSearchResults([])
+			return
+		}
+		const cb = new CrunchBaseAPI()
+		const companies = await cb.getPartialCompany(searchValue)
+		const newSearchResults: SearchResult[] = companies.map(company => ({
+			title: company.name,
+			value: company.name,
+			image: company.profile_image_url,
+		}))
+		setSearchResults([...newSearchResults])
+	}, 500)
+
+	useEffect(() => {
+		debouncedGetSearchResults(searchValue)
+	}, [searchValue, debouncedGetSearchResults])
 
 	const getGitHubData = async (query: string) => {
 		try {
@@ -18,7 +40,7 @@ const App = () => {
 			const gh = new GitHubAPI()
 			const orgRepos = await gh.getOrganizationRepos(query)
 			const totalStars = orgRepos.reduce((acc: number, repo: any) => acc + repo.stargazers_count, 0)
-			const repos = orgRepos.slice(0, 10).map((repo: any) => ({
+			const repos: Repo[] = orgRepos.slice(0, 10).map((repo) => ({
 				name: repo.name,
 				language: repo.language,
 				description: repo.description,
@@ -51,7 +73,7 @@ const App = () => {
 		try {
 			setCrunchBaseLoading(true)
 			const cb = new CrunchBaseAPI()
-			const companyInfo = await cb.getCompany(query)
+			const companyInfo = await cb.getFullCompany(query)
 			const company: Partial<Company> = {
 				name: companyInfo.name,
 				city: companyInfo.city_name,
@@ -74,6 +96,7 @@ const App = () => {
 	}
 
 	const fetchCompany = async (query: string) => {
+		setCurrentQuery(query)
 		if (!query) setCompany(null)
 		getCrunchBaseData(query)
 		getGitHubData(query)
@@ -81,9 +104,13 @@ const App = () => {
 
 	const handleEnterPressed = (event: React.KeyboardEvent<HTMLInputElement>) => {
 		if (event.key === 'Enter') {
-			setCurrentQuery(searchValue)
 			fetchCompany(searchValue)
 		}
+	}
+
+	const clearSearch = () => {
+		setSearchValue('')
+		fetchCompany('')
 	}
 
 	const renderCompanyCard = () => {
@@ -128,10 +155,20 @@ const App = () => {
 							onKeyDown={handleEnterPressed}
 							onChange={(event) => setSearchValue(event.target.value)}
 							placeholder='Search for a company'
+							value={searchValue}
+							searchResults={searchResults}
+							onResultSelect={(value) => fetchCompany(value)}
 						/>
 						{currentQuery && (
-							<Chip>
-								{currentQuery}
+							<Chip marginBetween={6} >
+								<label>
+									{currentQuery}
+								</label>
+								<Icon
+									icon='times'
+									size='1x'
+									onClick={clearSearch}
+								/>
 							</Chip>
 						)}
 					</Flexbox>
