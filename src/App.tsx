@@ -1,17 +1,20 @@
 import React, { useState } from 'react'
 
 import { CrunchBaseAPI, GitHubAPI } from './api'
-import { Flexbox, CompanyCard, Page, Search, Chip } from './components'
+import { Flexbox, Card, CompanyCard, Page, Search, Chip } from './components'
 import { Company } from './model'
 
 const App = () => {
 	const [searchValue, setSearchValue] = useState<string>('')
 	const [currentQuery, setCurrentQuery] = useState<string>('')
 	const [error, setError] = useState<string>('')
+	const [crunchBaseLoading, setCrunchBaseLoading] = useState<boolean>(false)
+	const [gitHubLoading, setGitHubLoading] = useState<boolean>(false)
 	const [company, setCompany] = useState<Partial<Company> | null>(null)
 
 	const getGitHubData = async (query: string) => {
 		try {
+			setGitHubLoading(true)
 			const gh = new GitHubAPI()
 			const orgRepos = await gh.getOrganizationRepos(query)
 			const totalStars = orgRepos.reduce((acc: number, repo: any) => acc + repo.stargazers_count, 0)
@@ -31,12 +34,22 @@ const App = () => {
 				...company,
 			}))
 		} catch (err) {
-			console.log(err)
+			const company: Partial<Company> = {
+				totalStars: null,
+				repos: [],
+			}
+			setCompany((prevState) => ({
+				...prevState,
+				...company,
+			}))
+		} finally {
+			setGitHubLoading(false)
 		}
 	}
 
 	const getCrunchBaseData = async (query: string) => {
 		try {
+			setCrunchBaseLoading(true)
 			const cb = new CrunchBaseAPI()
 			const companyInfo = await cb.getCompany(query)
 			const company: Partial<Company> = {
@@ -51,8 +64,12 @@ const App = () => {
 				...prevState,
 				...company,
 			}))
+			setError('')
 		} catch (err) {
-			setError('The company you are looking for could not be found')
+			setError(err.message)
+			setCompany(null)
+		} finally {
+			setCrunchBaseLoading(false)
 		}
 	}
 
@@ -67,6 +84,30 @@ const App = () => {
 			setCurrentQuery(searchValue)
 			fetchCompany(searchValue)
 		}
+	}
+
+	const renderCompanyCard = () => {
+		if (error || currentQuery === '') {
+			const label = error ? error : 'Search for a company to see its GitHub repositories and total stars.'
+			return (
+				<Card
+					full='horizontal'
+					padding='medium'
+					marginBetween='medium'
+				>
+					<Flexbox padding='large' >
+						<label>{label}</label>
+					</Flexbox>
+				</Card>
+			)
+		}
+		return (
+			<CompanyCard
+				company={company}
+				companyInfoLoading={crunchBaseLoading}
+				reposLoading={gitHubLoading}
+			/>
+		)
 	}
 
 	return (
@@ -94,7 +135,7 @@ const App = () => {
 							</Chip>
 						)}
 					</Flexbox>
-					<CompanyCard company={company} />
+					{renderCompanyCard()}
 				</Page>
 			</Flexbox>
 		</div>

@@ -26,14 +26,16 @@ interface LoaderProps {
 	type?: Types
 	color?: string
 	timeout?: number // in milliseconds
-	height?: number
-	width?: number
+	size?: number
 	visible?: boolean | string
 }
 
-export const Loader: React.FC<LoaderProps> = ({ type = 'ThreeDots', ...rest }) => (
+export const Loader: React.FC<LoaderProps> = ({ type = 'ThreeDots', color = '#999', size = 45, ...rest }) => (
 	<Spinner
 		type={type}
+		color={color}
+		height={size}
+		width={size}
 		{...rest}
 	/>
 )

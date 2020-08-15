@@ -2,26 +2,24 @@ import React from 'react'
 
 import styled from 'styled-components'
 
-import { Flexbox, Row, Card, Icon, Chip } from '../components'
+import { Flexbox, Row, Card, Chip, StarCounter, RepoCard, LoadingBoundary, Loader } from '../components'
 import { Company } from '../model'
 
 interface Props {
 	company: Partial<Company> | null
+	companyInfoLoading: boolean
+	reposLoading: boolean
 }
 
-export const CompanyCard: React.FC<Props> = ({ company }) => (
-	<Card
-		full='horizontal'
-		padding='medium'
-		marginBetween='medium'
-	>
-		{!company && (
-			<Flexbox padding='large' >
-				<label>Search for a company</label>
-			</Flexbox>
-		)}
-		{company && (
-			<>
+export const CompanyCard: React.FC<Props> = ({ company, companyInfoLoading, reposLoading }) => {
+	console.log('company:', company)
+	return (
+		<Card
+			full='horizontal'
+			padding='large'
+			marginBetween='medium'
+		>
+			<LoadingBoundary loading={companyInfoLoading} >
 				<Row
 					justify='between'
 				>
@@ -30,7 +28,7 @@ export const CompanyCard: React.FC<Props> = ({ company }) => (
 						align='center'
 						marginBetween='medium'
 					>
-						<Image src={company.imageUrl} />
+						<Image src={company?.imageUrl} />
 						<Flexbox>
 							<Flexbox
 								direction='row'
@@ -38,86 +36,67 @@ export const CompanyCard: React.FC<Props> = ({ company }) => (
 								marginBetween='small'
 							>
 								<h1>
-									{company.name}
+									{company?.name}
 								</h1>
-								{company.stockSymbol && (
+								{company?.stockSymbol && (
 									<Chip>
-										{company.stockSymbol}
+										{company?.stockSymbol}
 									</Chip>
 								)}
 							</Flexbox>
-							<Flexbox>
-								<label>{`${company.city}, ${company.country}`}</label>
+							<Flexbox
+								direction='row'
+								align='center'
+								marginBetween={6}
+							>
+								<label>{`${company?.city},`}</label>
+								<label>{company?.country}</label>
 							</Flexbox>
 						</Flexbox>
 					</Flexbox>
-					{company.totalStars && (
-						<Flexbox
-							direction='row'
-							align='center'
-							marginBetween='small'
-						>
-							<Icon
-								icon='star'
-								size='lg'
-							/>
-							<h4>{company.totalStars}</h4>
-						</Flexbox>
-					)}
-				</Row>
-				<Flexbox
-					paddingHorizontal='medium'
-				>
-					<p>{company.description}</p>
-				</Flexbox>
-				<Flexbox
-					marginBetween='medium'
-					paddingHorizontal='medium'
-					full='horizontal'
-				>
-					{company?.repos?.length === 0 && (
-						<label><i>This company has no repos associated with it.</i></label>
-					)}
-					{company.repos && company.repos.map(repo => (
-						<Card
-							full='horizontal'
-							padding='medium'
-							key={repo.name}
-							color='#333'
-						>
-							<Row
-								justify='between'
-							>
-								<Flexbox>
-									<h2>{repo.name}</h2>
-									<label>{repo.language}</label>
-								</Flexbox>
-								<Flexbox
-									direction='row'
-									align='center'
-									marginBetween='small'
-								>
-									<Icon
-										icon='star'
-										size='lg'
-									/>
-									<h4>{repo.stars}</h4>
-								</Flexbox>
-							</Row>
+					<LoadingBoundary
+						loading={reposLoading}
+						fallBack={(
 							<Flexbox>
-								<p>{repo.description}</p>
+								<Loader size={30} />
 							</Flexbox>
-						</Card>
-					))}
+						)}
+					>
+						<StarCounter stars={company?.totalStars} />
+					</LoadingBoundary>
+				</Row>
+				<Flexbox>
+					<p>{company?.description}</p>
 				</Flexbox>
-			</>
-		)}
-	</Card>
-)
+			</LoadingBoundary>
+			<Flexbox
+				marginBetween='medium'
+				full='horizontal'
+			>
+				<LoadingBoundary loading={reposLoading} >
+					{company?.repos?.length === 0 && (
+						<FadedLabel>This company has no GitHub repositories associated with it.</FadedLabel>
+					)}
+					{company?.repos && company?.repos.map(repo => (
+						<RepoCard
+							key={repo.name}
+							repo={repo}
+						/>
+					))}
+				</LoadingBoundary>
+			</Flexbox>
+		</Card>
+	)
+}
 
 const Image = styled.img`
 	object-fit: cover;
 	height: 100px;
 	width: 100px;
 	border-radius: 50%;
+`
+
+const FadedLabel = styled.label`
+	color: rgba(255, 255, 255, 0.38);
+	font-style: italic;
 `

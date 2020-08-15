@@ -25,6 +25,10 @@ export class CrunchBaseAPI {
 				name: query,
 			},
 		})
-		return response?.data?.data?.items[0].properties
+		const firstResult = response?.data?.data?.items[0]
+		if (firstResult) {
+			return firstResult.properties
+		}
+		throw Error(`No companies matching the query: \"${query}\".`)
 	}
 }
