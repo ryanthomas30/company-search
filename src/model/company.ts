@@ -1,11 +1,17 @@
 export interface Company {
-	name: string
+	name: string //
+	city: string //
+	country: string //
+	stockSymbol: string //
 	description: string
-	imageUrl: string
-	members: Member[]
+	imageUrl: string //
+	totalStars: number | null
+	repos: Repo[]
 }
 
-export interface Member {
+export interface Repo {
 	name: string
-	avatarUrl?: string
+	language: string
+	description: string
+	stars: number
 }
