@@ -7,6 +7,7 @@ import { Flexbox, Card, CompanyCard, Page, Search, SearchResult, Chip, Icon } fr
 import { Company, Repo } from './model'
 
 const App = () => {
+	/* STATE */
 	const [searchValue, setSearchValue] = useState<string>('')
 	const [searchResults, setSearchResults] = useState<SearchResult[]>([])
 	const [currentQuery, setCurrentQuery] = useState<string>('')
@@ -15,13 +16,14 @@ const App = () => {
 	const [gitHubLoading, setGitHubLoading] = useState<boolean>(false)
 	const [company, setCompany] = useState<Partial<Company> | null>(null)
 
+	/* Debounced call to CrunchBase API that fetches the top 5 most relevant companies based on the query string. */
 	const [debouncedGetSearchResults] = useDebouncedCallback(async (searchValue: string) => {
 		if (searchValue === '') {
 			setSearchResults([])
 			return
 		}
 		const cb = new CrunchBaseAPI()
-		const companies = await cb.getPartialCompany(searchValue)
+		const companies = await cb.getPartialCompanies(searchValue)
 		const newSearchResults: SearchResult[] = companies.map(company => ({
 			title: company.name,
 			value: company.name,
@@ -34,6 +36,11 @@ const App = () => {
 		debouncedGetSearchResults(searchValue)
 	}, [searchValue, debouncedGetSearchResults])
 
+	/**
+	 * Fetches GitHub repo data for a company specified by the query string.
+	 * In the event of an error, `totalStars` and `repos` are set to `null`.
+	 * @param query Query string sent to GitHub API
+	 */
 	const getGitHubData = async (query: string) => {
 		try {
 			setGitHubLoading(true)
@@ -69,11 +76,16 @@ const App = () => {
 		}
 	}
 
+	/**
+	 * Fetches information from CrunchBase for a company specified by the query string.
+	 * In the event of an error, the company state is set to null.
+	 * @param query Query string send to CrunchBase API
+	 */
 	const getCrunchBaseData = async (query: string) => {
 		try {
 			setCrunchBaseLoading(true)
 			const cb = new CrunchBaseAPI()
-			const companyInfo = await cb.getFullCompany(query)
+			const companyInfo = await cb.getCompany(query)
 			const company: Partial<Company> = {
 				name: companyInfo.name,
 				city: companyInfo.city_name,
@@ -95,24 +107,28 @@ const App = () => {
 		}
 	}
 
-	const fetchCompany = async (query: string) => {
+	/**
+	 * Fetches company data from GitHub and CrunchBase in parallel.
+	 * @param query Query string sent to both GitHub and CrunchBase APIs
+	 */
+	const fetchCompany = (query: string) => {
 		setCurrentQuery(query)
 		if (!query) setCompany(null)
 		getCrunchBaseData(query)
 		getGitHubData(query)
 	}
 
-	const handleEnterPressed = (event: React.KeyboardEvent<HTMLInputElement>) => {
-		if (event.key === 'Enter') {
-			fetchCompany(searchValue)
-		}
-	}
-
+	/**
+	 * Clears the search term and the company data.
+	 */
 	const clearSearch = () => {
 		setSearchValue('')
 		fetchCompany('')
 	}
 
+	/**
+	 * Render `CompanyCard` with fallback when there is an error or no current search term.
+	 */
 	const renderCompanyCard = () => {
 		if (error || currentQuery === '') {
 			const label = error ? error : 'Search for a company to see its GitHub repositories and total stars.'
@@ -152,7 +168,7 @@ const App = () => {
 						marginBetween='small'
 					>
 						<Search
-							onKeyDown={handleEnterPressed}
+							onEnter={() => fetchCompany(searchValue)}
 							onChange={(event) => setSearchValue(event.target.value)}
 							placeholder='Search for a company'
 							value={searchValue}

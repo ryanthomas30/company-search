@@ -9,6 +9,9 @@ export interface CrunchBaseCompany {
 	profile_image_url: string
 }
 
+/**
+ * Client to interface with the CrunchBase API.
+ */
 export class CrunchBaseAPI {
 
 	private readonly BASE_URL?: string
@@ -27,7 +30,11 @@ export class CrunchBaseAPI {
 		})
 	}
 
-	async getCompany(query: string): Promise<CrunchBaseCompany[]> {
+	/**
+	 * Get a list of companies matching a query string.
+	 * @param query Query string used to search for companies.
+	 */
+	async getCompanies(query: string): Promise<CrunchBaseCompany[]> {
 		const endpoint = '/odm-organizations'
 		const response = await this.axios.get(endpoint, {
 			params: {
@@ -37,15 +44,24 @@ export class CrunchBaseAPI {
 		return response?.data?.data?.items?.map(({ properties }: { properties: CrunchBaseCompany }) => properties)
 	}
 
-	async getFullCompany(query: string): Promise<CrunchBaseCompany> {
-		const companies = await this.getCompany(query)
+	/**
+	 * Gets the first result in a list of companies matching a query string.
+	 * @param query Query string used to search for a company.
+	 */
+	async getCompany(query: string): Promise<CrunchBaseCompany> {
+		const companies = await this.getCompanies(query)
 		const [firstResult] = companies
 		if (firstResult) return firstResult
 		throw Error(`No companies matching the query: "${query}".`)
 	}
 
-	async getPartialCompany(query: string): Promise<Pick<CrunchBaseCompany, 'name' | 'profile_image_url'>[]> {
-		const companies = await this.getCompany(query)
+	/**
+	 * Gets the first 5 results in a list of companies matching a query string.
+	 * Only returns the `name` and `profile_image_url` for each company.
+	 * @param query Query string used to search for companies.
+	 */
+	async getPartialCompanies(query: string): Promise<Pick<CrunchBaseCompany, 'name' | 'profile_image_url'>[]> {
+		const companies = await this.getCompanies(query)
 		return companies.slice(0, 5)
 	}
 }

@@ -4,9 +4,15 @@ import { Flexbox, Row, Card, StarCounter, Chip } from '../components'
 import { Repo } from '../model'
 
 interface Props {
+	/**
+	 * GitHub repository to render.
+	 */
 	repo: Repo
 }
 
+/**
+ * Component that renders a `Card` for a GitHub repository.
+ */
 export const RepoCard: React.FC<Props> = ({ repo }) => (
 	<Card
 		full='horizontal'

@@ -5,9 +5,15 @@ import numeral from 'numeral'
 import { Flexbox, Icon } from './'
 
 interface Props {
+	/**
+	 * Number of stars.
+	 */
 	stars?: number | null
 }
 
+/**
+ * Component that renders the number of stars a GitHub repository has.
+ */
 export const StarCounter: React.FC<Props> = ({ stars }) => {
 	if (!stars) return null
 	return (

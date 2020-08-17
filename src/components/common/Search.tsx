@@ -9,6 +9,7 @@ React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement
 > {
 	searchResults?: SearchResult[]
 	onResultSelect?: (value: string) => void
+	onEnter: (event: React.KeyboardEvent<HTMLInputElement>) => void
 }
 
 export interface SearchResult {
@@ -19,7 +20,7 @@ export interface SearchResult {
 
 const wait = (time: number): Promise<void> => new Promise(resolve => setTimeout(resolve, time))
 
-const BaseSearch: FC<Props> = ({ placeholder = 'Search', searchResults, onResultSelect, onFocus, onBlur, ...rest }) => {
+const BaseSearch: FC<Props> = ({ placeholder = 'Search', onKeyDown, onEnter, searchResults, onResultSelect, onFocus, onBlur, ...rest }) => {
 	const [isFocused, setIsFocused] = useState<boolean>(false)
 
 	const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
@@ -33,6 +34,14 @@ const BaseSearch: FC<Props> = ({ placeholder = 'Search', searchResults, onResult
 		setIsFocused(false)
 	}
 
+	const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+		if (event.key === 'Enter') {
+			onEnter(event)
+			setIsFocused(false)
+		}
+		if (onKeyDown) onKeyDown(event)
+	}
+
 	return (
 		<Flexbox
 			full='horizontal'
@@ -42,6 +51,7 @@ const BaseSearch: FC<Props> = ({ placeholder = 'Search', searchResults, onResult
 				placeholder={placeholder}
 				onFocus={handleFocus}
 				onBlur={handleBlur}
+				onKeyDown={handleKeyDown}
 				{...rest}
 			/>
 			<SearchIcon

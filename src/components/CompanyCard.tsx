@@ -6,11 +6,23 @@ import { Flexbox, Row, Card, Chip, StarCounter, RepoCard, LoadingBoundary, Loade
 import { Company } from '../model'
 
 interface Props {
+	/**
+	 * Company to render.
+	 */
 	company: Partial<Company> | null
+	/**
+	 * Whether the CrunchBase data is loading.
+	 */
 	companyInfoLoading: boolean
+	/**
+	 * Whether the GitHub data is loading.
+	 */
 	reposLoading: boolean
 }
 
+/**
+ * Component that renders a `Card` for a company.
+ */
 export const CompanyCard: React.FC<Props> = ({ company, companyInfoLoading, reposLoading }) => (
 	<Card
 		full='horizontal'
