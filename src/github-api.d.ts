@@ -1,10 +1,10 @@
 declare module 'github-api' {
 	export default class {
-		getOrganization(organizationName: string): Organization
+		getOrganization(organizationName: string): Promise<Organization>
 	}
 
 	export interface Organization {
-		getRepos: () => { data: GitHubRepo[] }
+		getRepos: () => Promise<{ data: GitHubRepo[] }>
 	}
 
 	export interface GitHubRepo {

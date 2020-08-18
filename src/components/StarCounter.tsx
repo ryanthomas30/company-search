@@ -15,7 +15,7 @@ interface Props {
  * Component that renders the number of stars a GitHub repository has.
  */
 export const StarCounter: React.FC<Props> = ({ stars }) => {
-	if (!stars) return null
+	if (stars === null || stars === undefined) return null
 	return (
 		<Flexbox
 			direction='row'

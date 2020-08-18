@@ -2,6 +2,7 @@ import React, { FC, useState } from 'react'
 
 import styled from 'styled-components'
 
+import { SearchResult } from '../../model'
 import { Flexbox, Row, Icon, Card } from './'
 
 interface Props extends React.DetailedHTMLProps<
@@ -10,12 +11,6 @@ React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement
 	searchResults?: SearchResult[]
 	onResultSelect?: (value: string) => void
 	onEnter: (event: React.KeyboardEvent<HTMLInputElement>) => void
-}
-
-export interface SearchResult {
-	image: string
-	title: string
-	value: string
 }
 
 const wait = (time: number): Promise<void> => new Promise(resolve => setTimeout(resolve, time))
@@ -65,7 +60,7 @@ const BaseSearch: FC<Props> = ({ placeholder = 'Search', onKeyDown, onEnter, sea
 					overflow='hidden'
 				>
 					{searchResults.map(result => (
-						<SearchResult
+						<SearchResultContainer
 							key={result.title}
 							marginBetween='small'
 							padding='small'
@@ -76,7 +71,7 @@ const BaseSearch: FC<Props> = ({ placeholder = 'Search', onKeyDown, onEnter, sea
 						>
 							<Image src={result.image} />
 							<h3>{result.title}</h3>
-						</SearchResult>
+						</SearchResultContainer>
 					))}
 				</SearchResults>
 			)}
@@ -114,7 +109,7 @@ const SearchResults = styled(Card)`
 	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 `
 
-const SearchResult = styled(Row)`
+const SearchResultContainer = styled(Row)`
 	transition: all 80ms ease-in-out;
 	&:hover {
 		background-color: #444;
